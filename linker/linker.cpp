@@ -710,15 +710,10 @@ enum walk_action_result_t : uint32_t {
   kWalkSkip = 2
 };
 
-static soinfo* find_library(android_namespace_t* ns,
-                           const char* name, int rtld_flags,
-                           const android_dlextinfo* extinfo,
-                           soinfo* needed_by);
-
+#ifdef LD_SHIM_LIBS
 // g_ld_all_shim_libs maintains the references to memory as it used
 // in the soinfo structures and in the g_active_shim_libs list.
 
-typedef std::pair<std::string, std::string> ShimDescriptor;
 static std::vector<ShimDescriptor> g_ld_all_shim_libs;
 
 // g_active_shim_libs are all shim libs that are still eligible
@@ -740,9 +735,11 @@ void parse_LD_SHIM_LIBS(const char* path) {
   if (path != nullptr) {
     // We have historically supported ':' as well as ' ' in LD_SHIM_LIBS.
     for (const auto& pair : android::base::Split(path, " :")) {
-      size_t pos = pair.find('|');
-      if (pos > 0 && pos < pair.length() - 1) {
-        auto desc = std::pair<std::string, std::string>(pair.substr(0, pos), pair.substr(pos + 1));
+      std::vector<std::string> pieces = android::base::Split(pair, "|");
+      if (pieces.size() != 2) continue;
+      char resolved_path[PATH_MAX];
+      if (realpath(pieces[0].c_str(), resolved_path) != nullptr) {
+        auto desc = std::pair<std::string, std::string>(std::string(resolved_path), pieces[1]);
         g_ld_all_shim_libs.push_back(desc);
       }
     }
@@ -750,27 +747,22 @@ void parse_LD_SHIM_LIBS(const char* path) {
   reset_g_active_shim_libs();
 }
 
-template<typename F>
-static void for_each_matching_shim(const char *const path, F action) {
-  if (path == nullptr) return;
-  INFO("Finding shim libs for \"%s\"\n", path);
-  std::vector<const ShimDescriptor *> matched;
+std::vector<const ShimDescriptor*> shim_matching_pairs(const char* path) {
+  std::vector<const ShimDescriptor*> matched_pairs;
 
-  g_active_shim_libs.for_each([&](const ShimDescriptor *a_pair) {
+  g_active_shim_libs.for_each([&](const ShimDescriptor* a_pair) {
     if (a_pair->first == path) {
-      matched.push_back(a_pair);
+      matched_pairs.push_back(a_pair);
     }
   });
 
-  g_active_shim_libs.remove_if([&](const ShimDescriptor *a_pair) {
+  g_active_shim_libs.remove_if([&](const ShimDescriptor* a_pair) {
     return a_pair->first == path;
   });
 
-  for (const auto& one_pair : matched) {
-    INFO("Injecting shim lib \"%s\" as needed for %s", one_pair->second.c_str(), path);
-    action(one_pair->second.c_str());
-  }
+  return matched_pairs;
 }
+#endif
 
 // This function walks down the tree of soinfo dependencies
 // in breadth-first order and
@@ -1374,6 +1366,12 @@ static bool load_library(android_namespace_t* ns,
       si->set_soname(elf_reader.get_string(d->d_un.d_val));
     }
   }
+
+#ifdef LD_SHIM_LIBS
+  for_each_matching_shim(realpath.c_str(), [&](const char* name) {
+    load_tasks->push_back(LoadTask::create(name, si, ns, task->get_readers_map()));
+  });
+#endif
 
   for_each_dt_needed(task->get_elf_reader(), [&](const char* name) {
     load_tasks->push_back(LoadTask::create(name, si, ns, task->get_readers_map()));
@@ -2185,7 +2183,9 @@ void* do_dlopen(const char* name, int flags,
   }
 
   ProtectedDataGuard guard;
+#ifdef LD_SHIM_LIBS
   reset_g_active_shim_libs();
+#endif
   soinfo* si = find_library(ns, translated_name, flags, extinfo, caller);
   loading_trace.End();
 
