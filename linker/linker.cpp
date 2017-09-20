@@ -1178,20 +1178,6 @@ const char* fix_dt_needed(const char* dt_needed, const char* sopath __unused) {
   return dt_needed;
 }
 
-static const char* get_executable_path() {
-  static std::string executable_path;
-  if (executable_path.empty()) {
-    char path[PATH_MAX];
-    ssize_t path_len = readlink("/proc/self/exe", path, sizeof(path));
-    if (path_len == -1 || path_len >= static_cast<ssize_t>(sizeof(path))) {
-      async_safe_fatal("readlink('/proc/self/exe') failed: %s", strerror(errno));
-    }
-    executable_path = std::string(path, path_len);
-  }
-
-  return executable_path.c_str();
-}
-
 template<typename F>
 static void for_each_dt_needed(const ElfReader& elf_reader, F action) {
 
