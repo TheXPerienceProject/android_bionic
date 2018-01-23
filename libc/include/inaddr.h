@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,29 +26,11 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _ARPA_INET_H_
-#define _ARPA_INET_H_
+#ifndef _INADDR_H_
+#define _INADDR_H_
 
-#include <netinet/in.h>
 #include <stdint.h>
-#include <sys/cdefs.h>
-#include <sys/types.h>
-#include <inaddr.h>
 
-__BEGIN_DECLS
-
-in_addr_t inet_addr(const char* _Nonnull __s);
-int inet_aton(const char* _Nonnull __s, struct in_addr* _Nullable __addr);
-in_addr_t inet_lnaof(struct in_addr __addr);
-struct in_addr inet_makeaddr(in_addr_t __net, in_addr_t __host);
-in_addr_t inet_netof(struct in_addr __addr);
-in_addr_t inet_network(const char* _Nonnull __s);
-char* _Nonnull inet_ntoa(struct in_addr __addr);
-const char* _Nullable inet_ntop(int __af, const void* _Nonnull __src, char* _Nonnull __dst, socklen_t __size);
-unsigned int inet_nsap_addr(const char* _Nonnull __ascii, unsigned char* _Nonnull __binary, int __n);
-char* _Nonnull inet_nsap_ntoa(int __binary_length, const unsigned char* _Nonnull __binary, char* _Nullable __ascii);
-int inet_pton(int __af, const char* _Nonnull __src, void* _Nonnull __dst);
-
-__END_DECLS
+typedef uint32_t in_addr_t;
 
 #endif
