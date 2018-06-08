@@ -1182,7 +1182,6 @@ template<typename F>
 static void for_each_dt_needed(const ElfReader& elf_reader, F action) {
 
 #ifdef LD_SHIM_LIBS
-  for_each_matching_shim(get_executable_path(), action);
   for_each_matching_shim(elf_reader.name(), action);
 #endif
   for (const ElfW(Dyn)* d = elf_reader.dynamic(); d->d_tag != DT_NULL; ++d) {
