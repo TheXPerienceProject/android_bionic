@@ -35,6 +35,8 @@
 #include <sys/types.h>
 #include <inaddr.h>
 
+typedef uint32_t in_addr_t;
+
 __BEGIN_DECLS
 
 in_addr_t inet_addr(const char* __s);
