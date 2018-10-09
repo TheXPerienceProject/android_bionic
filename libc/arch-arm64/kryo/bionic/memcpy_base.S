@@ -241,4 +241,3 @@ kryo_bb_lt2:
 kryo_bb_exit:
         mov        x0, x11
         ret
-

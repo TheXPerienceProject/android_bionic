@@ -26,16 +26,17 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _BITS_IN_ADDR_H_
-#define _BITS_IN_ADDR_H_
+#include <private/bionic_asm.h>
 
-#include <sys/cdefs.h>
-#include <stdint.h>
+ENTRY(__memcpy_chk)
+  cmp x2, x3
+  bls memcpy
 
-#include <inaddr.h>
+  // Preserve for accurate backtrace.
+  stp x29, x30, [sp, -16]!
+  .cfi_def_cfa_offset 16
+  .cfi_rel_offset x29, 0
+  .cfi_rel_offset x30, 8
 
-struct in_addr {
-  in_addr_t s_addr;
-};
-
-#endif
+  bl __memcpy_chk_fail
+END(__memcpy_chk)
