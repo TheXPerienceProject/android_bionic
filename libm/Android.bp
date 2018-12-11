@@ -511,10 +511,6 @@ cc_library {
         "-Wl,--Bsymbolic-functions",
     ],
 
-    ldflags: [
-        "-Wl,--Bsymbolic-functions",
-    ],
-
     include_dirs: ["bionic/libc"],
     system_shared_libs: ["libc"],
 
