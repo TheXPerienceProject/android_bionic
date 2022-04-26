@@ -68,6 +68,13 @@ libc_common_flags = [
 
     // GWP-ASan requires platform TLS.
     "-fno-emulated-tls",
+
+    // We know clang does a lot of harm by rewriting what we've said, and sadly
+    // never see any good it does, so let's just ask it to do what we say...
+    // (The specific motivating example was clang turning a loop that would only
+    // ever touch 0, 1, or 2 bytes into a call to memset, which was never going
+    // to amortize.)
+    "-fno-builtin",
 ]
 
 // Define some common cflags
@@ -639,6 +646,7 @@ cc_library_static {
                 "upstream-openbsd/lib/libc/string/strcpy.c",
                 "upstream-openbsd/lib/libc/string/stpcpy.c",
                 "upstream-openbsd/lib/libc/string/strcat.c",
+                "upstream-openbsd/lib/libc/string/memchr.c",
             ],
         },
         arm64: {
@@ -831,6 +839,7 @@ cc_library_static {
         arm: {
             asflags: libc_common_flags + ["-mno-restrict-it"],
             srcs: [
+                "arch-arm/generic/bionic/memchr.S",
                 "arch-arm/generic/bionic/memcmp.S",
                 "arch-arm/generic/bionic/memmove.S",
                 "arch-arm/generic/bionic/memset.S",
@@ -2009,6 +2018,7 @@ cc_library {
     name: "libstdc++",
     static_ndk_lib: true,
     static_libs: ["libasync_safe"],
+    vendor_available: true,
 
     static: {
         system_shared_libs: [],
