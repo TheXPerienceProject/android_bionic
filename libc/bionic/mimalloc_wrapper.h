@@ -39,6 +39,7 @@ __BEGIN_DECLS
 
 int mi_mallopt(int, int);
 int mi_malloc_info(int, FILE*);
+struct mallinfo mi_mallinfo();
 
 void mi_malloc_disable();
 void mi_malloc_enable();
