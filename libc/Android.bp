@@ -1890,7 +1890,7 @@ cc_library_headers {
 // libstdc++.so and libstdc++.a.
 // ========================================================
 
-cc_library {
+cc_defaults {
     defaults: [
         "libc_defaults",
         "bug_24465209_workaround",
